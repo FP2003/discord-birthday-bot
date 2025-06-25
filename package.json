@@ -1,0 +1,33 @@
+{
+  "name": "discord-birthday-bot",
+  "version": "1.0.0",
+  "description": "A Discord bot that tracks member birthdays and sends automatic announcements",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FP2003/discord-birthday-bot.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "birthday",
+    "reminder",
+    "automation"
+  ],
+  "author": "FP2003",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FP2003/discord-birthday-bot/issues"
+  },
+  "homepage": "https://github.com/FP2003/discord-birthday-bot#readme",
+  "dependencies": {
+    "discord.js": "^14.20.0",
+    "dotenv": "^16.5.0",
+    "node-cron": "^4.1.1"
+  }
+}

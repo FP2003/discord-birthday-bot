@@ -100,7 +100,7 @@ function isValidDate(month, day, year = null) {
 function formatDate(month, day, year = null) {
     const months = ['January', 'February', 'March', 'April', 'May', 'June',
                    'July', 'August', 'September', 'October', 'November', 'December'];
-    const dateStr = `${months[month - 1]} ${day}`;
+    const dateStr = `${day} ${months[month - 1]}`;
     return year ? `${dateStr}, ${year}` : dateStr;
 }
 
@@ -116,7 +116,26 @@ function calculateAge(month, day, year) {
     return age;
 }
 
+function getUpcomingBirthdays(guildId, limit = 10) {
+    const guild = birthdayData[guildId];
+    if (!guild) return [];
+    const today = new Date();
+    const birthdays = [];
+    for (const [userId, birthday] of Object.entries(guild.users || {})) {
+        const { month, day, year } = birthday;
+        let birthdayDate = new Date(today.getFullYear(), month - 1, day);
+        if (birthdayDate < today) birthdayDate.setFullYear(today.getFullYear() + 1);
+        const daysUntil = Math.ceil((birthdayDate - today) / (1000 * 60 * 60 * 24));
+        birthdays.push({ userId, month, day, year, daysUntil });
+    }
+    return birthdays.sort((a, b) => a.daysUntil - b.daysUntil).slice(0, limit);
+}
 
+function getTodayBirthdays(guildId) {
+    const guild = birthdayData[guildId];
+    if (!guild) return [];
+    
+}
 
 
 

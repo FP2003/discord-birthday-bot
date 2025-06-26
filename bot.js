@@ -1,10 +1,10 @@
+const { Client, GatewayIntentBits, SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 const cron = require('node-cron');
-const { GatewayIntentBits, SlashCommandBuilder } = require('discord.js');
 require('dotenv').config();
 
-// Config
+// Bot config
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -13,39 +13,41 @@ const client = new Client({
     ]
 });
 
-// Storage
-const birthdayFile = path.join(__dirname, 'birthdays.json');
+// Birthday data storage
+const birthdayDataFile = path.join(__dirname, 'birthdays.json');
 
-// Load data
-function loadBirthday() {
+// Load birthday data
+function loadBirthdayData() {
     try {
-        if (fs.existsSync(birthdayFile)) {
-            const data = fs.readFileSync(birthdayFile, 'utf8');
+        if (fs.existsSync(birthdayDataFile)) {
+            const data = fs.readFileSync(birthdayDataFile, 'utf8');
             return JSON.parse(data);
         }
     } catch (error) {
-        console.error('Error loading birthday');
+        console.error('Error loading birthday data:', error);
     }
     return {};
 }
 
-// Save birthday
-function saveBirthday(data) {
+// Save birthday data
+function saveBirthdayData(data) {
     try {
-        fs.writeFileSync(birthdayFile, JSON.stringify(data, null, 2));
+        fs.writeFileSync(birthdayDataFile, JSON.stringify(data, null, 2));
     } catch (error) {
-        console.error('Error saving birthday');
+        console.error('Error saving birthday data:', error);
     }
 }
 
-// Structure of sav
-let birthdayData = loadBirthday();
+// Birthday data structure: { guildId: { users: { userId: { month, day, year? } }, channel: string } }
+let birthdayData = loadBirthdayData();
 
+// Slash commands
 const commands = [
     new SlashCommandBuilder()
         .setName('setbirthday')
-        .setDescription('Skizzo says set your birthday')
-        .addIntegerOption(option => option.setName('month')
+        .setDescription('Set your birthday')
+        .addIntegerOption(option =>
+            option.setName('month')
                 .setDescription('Birth month (1-12)')
                 .setRequired(true)
                 .setMinValue(1)
@@ -60,31 +62,61 @@ const commands = [
             option.setName('year')
                 .setDescription('Birth year (optional)')
                 .setRequired(false)
-                .setMinValue(1990)
+                .setMinValue(1900)
                 .setMaxValue(new Date().getFullYear())),
-    
+
     new SlashCommandBuilder()
-            .setName('birthday')
-            .setDescription('Skizzo says lets check someones birthday')
-            .addUserOption(option => option.setName('user')
-                .setDescription('Skizzo to check birthday for')
+        .setName('birthday')
+        .setDescription('Check someone\'s birthday')
+        .addUserOption(option =>
+            option.setName('user')
+                .setDescription('User to check birthday for')
                 .setRequired(false)),
-    
+
     new SlashCommandBuilder()
         .setName('birthdays')
-        .setDescription('Skizzo says list the upcoming birthdays in this server'),
+        .setDescription('List upcoming birthdays in this server'),
 
     new SlashCommandBuilder()
         .setName('removebirthday')
-        .setDescription('Skizzo says remove your birthday from the database'),
+        .setDescription('Remove your birthday from the database'),
 
     new SlashCommandBuilder()
         .setName('birthdaychannel')
-        .setDescription('Skizzo says set the channel for birthday announcements (Admin only)')
+        .setDescription('Set the channel for birthday announcements (Admin only)')
         .addChannelOption(option =>
             option.setName('channel')
                 .setDescription('Channel for birthday announcements')
                 .setRequired(true))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+];
 
-]
+// Utility functions
+function isValidDate(month, day, year = null) {
+    const date = new Date(year || 2024, month - 1, day);
+    return date.getMonth() === (month - 1) && date.getDate() === day;
+}
+
+function formatDate(month, day, year = null) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    const dateStr = `${months[month - 1]} ${day}`;
+    return year ? `${dateStr}, ${year}` : dateStr;
+}
+
+function calculateAge(month, day, year) {
+    if (!year) return null;
+    const today = new Date();
+    const birthDate = new Date(year, month - 1, day);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    if (today.getMonth() < birthDate.getMonth() ||
+        (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+}
+
+
+
+
+

@@ -142,10 +142,33 @@ function getTodayBirthdays(guildId) {
         .map(([userId, b]) => ({ userId, ...b }));
 }
 
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-    cron.schedule('0 9 * * *', checkAndAnnounceBirthdays);
+async function checkAndAnnounceBirthdays() {
+  for (const [guildId, guildData] of Object.entries(birthdayData)) {
+    const list = getTodaysBirthdays(guildId);
+    if (!list.length) continue;
+    const guild = client.guilds.cache.get(guildId);
+    const channel = guild?.channels.cache.get(guildData.channel);
+    if (!channel) continue;
+    for (const b of list) {
+      const user = await client.users.fetch(b.userId).catch(() => null);
+      if (!user) continue;
+      const age = calculateAge(b.month, b.day, b.year);
+      const embed = new EmbedBuilder()
+        .setTitle('🎉 Happy Birthday! 🎂')
+        .setDescription(
+          `It’s **${user.username}**’s birthday!` +
+          (age != null ? ` They turn ${age + 1} today.` : '')
+        )
+        .setThumbnail(user.displayAvatarURL())
+        .setTimestamp();
+      channel.send({ content: `<@${b.userId}>`, embeds: [embed] });
+    }
+  }
+}
+
+client.once('ready', async () => {
+  console.log(`Logged in as ${client.user.tag}`);
+  await client.application.commands.set(commands);
+  cron.schedule('0 9 * * *', checkAndAnnounceBirthdays);
 });
-
-
 

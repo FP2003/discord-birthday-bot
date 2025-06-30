@@ -134,8 +134,18 @@ function getUpcomingBirthdays(guildId, limit = 10) {
 function getTodayBirthdays(guildId) {
     const guild = birthdayData[guildId];
     if (!guild) return [];
-    
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+    return Object.entries(guild.users || {})
+        .filter(([_, b]) => b.month === currentMonth && b.day === currentDay)
+        .map(([userId, b]) => ({ userId, ...b }));
 }
+
+client.once('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+    cron.schedule('0 9 * * *', checkAndAnnounceBirthdays);
+});
 
 
 
